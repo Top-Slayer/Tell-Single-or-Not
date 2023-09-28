@@ -1,16 +1,16 @@
 import cv2
 import random
-import freetype
+import os
 from playsound import playsound
+from pydub import AudioSegment
+import subprocess
 from gtts import gTTS
+import time
 
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
-
-cap = cv2.VideoCapture(1)
-
-random_time = 10
+cap = cv2.VideoCapture(0)  # dont forget to change to 1 for webcam equipment
 
 
 # All function for processing
@@ -42,15 +42,15 @@ def detectFace():
         cv2.circle(frame, position_circle, 3, (0, 255, 0), 2)
         total = position_circle[0] - position_start_line[0]
 
-        text = "Hello"
+        text = "Human-Face"
 
-        random_text = ["คนรักเดียวใจเดียว", "คนเจ้าชู้", "คนโสด"]
+        random_text = ["เจ้าชื่อหยัง"]
 
         myobj = gTTS(text=random.choice(random_text), lang="th", slow=False)
-        myobj.save("output.mp3")
+        myobj.save('output.wav')
 
-        audio_file_path = r"C:\Education about Programming - TOP\Python\Detect_Single_or_NotSingle_AI\Tell-Single-or-Not\output.mp3"
-        playsound(audio_file_path)
+        # You can edit your path of sound file to play
+        # audio_file_path = r"C:\Education about Programming - TOP\Python\Detect_Single_or_NotSingle_AI\Tell-Single-or-Not\output.mp3"
 
         cv2.putText(
             frame,
