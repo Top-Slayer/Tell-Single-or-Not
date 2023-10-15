@@ -5,3 +5,4 @@ Use this command:
 - pip install opencv-python
 - pip install face_recognition
 - pip install speechrecognition
+- pip install transformers torch
