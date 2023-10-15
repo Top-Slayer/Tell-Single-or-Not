@@ -1,30 +1,31 @@
-import cv2
-import random
-import os
-from playsound import playsound
-from pydub import AudioSegment
-import subprocess
-from gtts import gTTS
-import time
+from threading import Thread
 
+import cv2
+import os
+import time
+import pygame
+import random
+from gtts import gTTS
+
+# Variables
+# ------------------------------------------------------
+status = True
+# ------------------------------------------------------
+
+
+# Objects
+# ------------------------------------------------------
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
-cap = cv2.VideoCapture(0)  # dont forget to change to 1 for webcam equipment
+cap = cv2.VideoCapture(0)  # dont forget to change to 0 for webcam equipment
+# ------------------------------------------------------
 
 
 # All function for processing
-def random_function(rand_num):
-    random_text = ["คนรักเดียวใจเดียว", "คนเจ้าชู้", "คนโสด"]
-    text = str()
 
-    if rand_num <= 0:
-        text = random.choice(random_text)
-        rand_num -= 1
-
-    return rand_num
-
-
+# detectFace function
+# ------------------------------------------------------
 def detectFace():
     # Convert the frame to grayscale for face detection
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -44,14 +45,6 @@ def detectFace():
 
         text = "Human-Face"
 
-        random_text = ["เจ้าชื่อหยัง"]
-
-        myobj = gTTS(text=random.choice(random_text), lang="th", slow=False)
-        myobj.save('output.wav')
-
-        # You can edit your path of sound file to play
-        # audio_file_path = r"C:\Education about Programming - TOP\Python\Detect_Single_or_NotSingle_AI\Tell-Single-or-Not\output.mp3"
-
         cv2.putText(
             frame,
             text,
@@ -62,10 +55,21 @@ def detectFace():
             2,
         )
 
+        Thread(target=play_sound).start()
+        cv2.imwrite("check_Picture.png", frame)
+
         if total > 0:
             return True
         else:
             return False
+# ------------------------------------------------------
+
+
+# Play sound function
+# ------------------------------------------------------
+def play_sound():
+    exec(open("Playsound.py").read())
+# ------------------------------------------------------
 
 
 print("Processing...")
@@ -76,10 +80,12 @@ while True:
     frame = cv2.resize(frame, (640, 480))
 
     # main processing
-    print("Right: True") if detectFace() == True else print("Left: False")
+    # print("Right: True") if detectFace() == True else print("Left: False")
+    detectFace()
 
     # display camera
     cv2.imshow("Detect people", frame)
+
     # wait for pressed q letter
     if cv2.waitKey(1) & 0xFF == ord("q"):
         print("Ending...")
