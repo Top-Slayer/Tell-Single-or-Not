@@ -6,10 +6,13 @@ import time
 import pygame
 import random
 from gtts import gTTS
+from datetime import datetime
+
 
 # Variables
 # ------------------------------------------------------
 status = True
+
 # ------------------------------------------------------
 
 
@@ -23,10 +26,66 @@ cap = cv2.VideoCapture(0)  # dont forget to change to 0 for webcam equipment
 
 
 # All function for processing
-
-# detectFace function
+# Play sound function
 # ------------------------------------------------------
-def detectFace():
+def play_sound():
+    random_text = ["คนรักเดียวใจเดียว", "คนเจ้าชู้", "คนโสด"]
+    rand_num = random.randrange(0, len(random_text))
+
+    pygame.mixer.init()
+
+    print(f"[ {rand_num} ]  {random_text[rand_num]}")
+    print("--> Talking...")
+
+    myobj = gTTS(text=random_text[rand_num], lang="th", slow=False)
+    myobj.save("output.wav")
+
+    my_sound = pygame.mixer.Sound("output.wav")
+    my_sound.play()
+    pygame.time.wait(int(my_sound.get_length() * 1000))
+
+    check_pic = cv2.imread("check_Picture.png")
+    current_time = datetime.now()
+    formatted_time = current_time.strftime("%Y%m%d%H%M%S")
+    formatted_time_str = str(formatted_time)
+
+    image_path = str()
+
+    # options to talking out
+    # ------------------------------------------------------------------
+    if rand_num == 0:
+        image_path = f"types/คนรักเดียวใจเดียว/{formatted_time_str}.png"
+
+    elif rand_num == 1:
+        image_path = f"types/คนเจ้าชู้/{formatted_time_str}.png"
+
+    elif rand_num == 2:
+        image_path = f"types/คนโสด/{formatted_time_str}.png"
+    # ------------------------------------------------------------------
+
+    print("\n--> Image path: " + image_path)
+
+    try:
+        cv2.imwrite(image_path, check_pic)
+        print("--> Image saved successfully!")
+    except Exception as e:
+        print(f"--> Error saving image: {e}")
+
+    global status
+    status = True
+
+
+# ------------------------------------------------------
+
+
+print("Processing...")
+
+while True:
+    ret, frame = cap.read()
+    frame = cv2.flip(frame, 1)
+    frame = cv2.resize(frame, (640, 480))
+
+    # main processing
     # Convert the frame to grayscale for face detection
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # Detect faces
@@ -55,40 +114,19 @@ def detectFace():
             2,
         )
 
-        Thread(target=play_sound).start()
-        cv2.imwrite("check_Picture.png", frame)
+        if status:
+            Thread(target=play_sound).start()
+            cv2.imwrite("check_Picture.png", frame)
+            status = False
 
-        if total > 0:
-            return True
-        else:
-            return False
-# ------------------------------------------------------
-
-
-# Play sound function
-# ------------------------------------------------------
-def play_sound():
-    exec(open("Playsound.py").read())
-# ------------------------------------------------------
-
-
-print("Processing...")
-
-while True:
-    ret, frame = cap.read()
-    frame = cv2.flip(frame, 1)
-    frame = cv2.resize(frame, (640, 480))
-
-    # main processing
-    # print("Right: True") if detectFace() == True else print("Left: False")
-    detectFace()
+        print(".", end=(" "))
 
     # display camera
     cv2.imshow("Detect people", frame)
 
     # wait for pressed q letter
     if cv2.waitKey(1) & 0xFF == ord("q"):
-        print("Ending...")
+        print("\nEnding...")
         break
 
 cap.release()
