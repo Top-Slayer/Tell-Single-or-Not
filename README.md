@@ -6,5 +6,5 @@ Use this command for Python:
 - pip install pyfirmata
 
 ## Library for Arduino IDE:
-- ArduinoJSOn
+- ArduinoJSON
   
