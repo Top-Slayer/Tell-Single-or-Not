@@ -15,15 +15,18 @@ from datetime import datetime
 status_voice = True
 status_compare_img = True
 
+first_check = True
+
 # ------------------------------------------------------
 
 
 # Objects
 # ------------------------------------------------------
+cap = cv2.VideoCapture(0)  # dont forget to change to 0 for webcam equipment
+
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
-cap = cv2.VideoCapture(0)  # dont forget to change to 0 for webcam equipment
 # ------------------------------------------------------
 
 
@@ -40,7 +43,7 @@ def play_sound(value, sound_text, save_status):
 
     my_sound = pygame.mixer.Sound("output.wav")
     my_sound.play()
-    pygame.time.wait(int(my_sound.get_length() * 1500))
+    pygame.time.wait(int(my_sound.get_length() * 1000))
 
     check_pic = cv2.imread("check_Picture.png")
     current_time = datetime.now()
@@ -59,6 +62,12 @@ def play_sound(value, sound_text, save_status):
 
     elif value == 2 and save_status == True:
         image_path = f"types/คนโสด/{formatted_time_str}.png"
+
+    elif value == 3 and save_status == True:
+        image_path = f"types/คุณดูเหมือนคนเจ้าชู้อ่ะหยอกเล่น/{formatted_time_str}.png"
+
+    elif value == 4 and save_status == True:
+        image_path = f"types/คนอะไรน่ารักจัง/{formatted_time_str}.png"
     # ------------------------------------------------------------------
 
     if save_status == True:
@@ -89,10 +98,16 @@ def detect_same_faces():
         cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
     )
 
-    chcek_image = cv2.imread("check_Picture.png")
-    folder = [r"types\คนเจ้าชู้", "types\คนรักเดียวใจเดียว", "types\คนโสด"]
-    image_path = str()
-    back_status = False
+    check_image = cv2.imread("check_Picture.png")
+    folder = [
+        r"types\คนเจ้าชู้",
+        "types\คนรักเดียวใจเดียว",
+        "types\คนโสด",
+        "types\คุณดูเหมือนคนเจ้าชู้อ่ะหยอกเล่น",
+        "types\คนอะไรน่ารักจัง",
+    ]
+    score_folders = [0, 0, 0, 0, 0]
+    indexOfScore_folders = score_folders.index(min(score_folders))
 
     current_time = datetime.now()
     formatted_time = current_time.strftime("%Y%m%d%H%M%S")
@@ -103,7 +118,7 @@ def detect_same_faces():
         for filename in os.listdir(folder[i]):
             find_image = cv2.imread(os.path.join(folder[i], filename))
 
-            gray_image1 = cv2.cvtColor(chcek_image, cv2.COLOR_BGR2GRAY)
+            gray_image1 = cv2.cvtColor(check_image, cv2.COLOR_BGR2GRAY)
             gray_image2 = cv2.cvtColor(find_image, cv2.COLOR_BGR2GRAY)
 
             faces1 = face_cascade.detectMultiScale(
@@ -112,9 +127,6 @@ def detect_same_faces():
             faces2 = face_cascade.detectMultiScale(
                 gray_image2, scaleFactor=1.1, minNeighbors=5
             )
-
-            if back_status == True:
-                break
 
             if len(faces1) == 1 and len(faces2) == 1:
                 x1, y1, w1, h1 = faces1[0]
@@ -126,38 +138,48 @@ def detect_same_faces():
                 avg_intensity1 = face1.mean()
                 avg_intensity2 = face2.mean()
 
+                compare_face_value = round(abs(avg_intensity1 - avg_intensity2), 2)
                 threshold = 20
 
                 print(
-                    "\n--> Face comparing value: ", abs(avg_intensity1 - avg_intensity2)
+                    "\n--> Face comparing value: ",
+                    compare_face_value,
                 )
 
-                if abs(avg_intensity1 - avg_intensity2) < threshold:
+                if compare_face_value < threshold:
                     print(f"--> Faces match: [ {folder[i][6:]} ]")
-                    play_sound(i, folder[i][6:], False)
-                    back_status = True
-                    break
-                else:
-                    print("--> Faces do not match.")
-                    play_sound(i, folder[i][6:], False)
-                    back_status = True
-                    break
-            else:
-                print("--> Number of faces detected is not 1 in one or both images.")
-                play_sound(i, folder[i][6:], False)
 
+                if score_folders[i] < compare_face_value:
+                    score_folders[i] = compare_face_value
         i += 1
 
-    if os.listdir(folder[0]) == []:
+    # if os.listdir(folder[0]) == []:
+    #     rand_num = random.randint(0, len(folder) - 1)
+    #     play_sound(rand_num, folder[rand_num][6:], True)
+
+    print("\n--> Searching... ", score_folders)
+    print(
+        f"--> Procress first folder: {folder[indexOfScore_folders][6:]} - Index[ {indexOfScore_folders} ]"
+    )
+
+    global first_check
+
+    if first_check == True:
+        first_check = False
         rand_num = random.randint(0, len(folder) - 1)
         play_sound(rand_num, folder[rand_num][6:], True)
+    else:
+        for x in score_folders:
+            print(x)
+            if x != 0:
+                play_sound(indexOfScore_folders, folder[indexOfScore_folders][6:], False)
 
     global status_compare_img
     status_compare_img = True
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print(f"--> Compare-Faces time: {elapsed_time:.2f} seconds")
+    print(f"\n--> Compare-Faces end times: {elapsed_time:.2f} seconds")
 
 
 # ------------------------------------------------------
@@ -206,7 +228,7 @@ while True:
             Thread(target=detect_same_faces).start()
             cv2.imwrite("check_Picture.png", frame)
 
-        print(".", end=(""))
+            print("-----------------------------------------------------")
 
     # display camera
     cv2.imshow("Detect people", frame)
