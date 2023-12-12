@@ -142,12 +142,12 @@ def detect_same_faces():
                 threshold = 20
 
                 print(
-                    "\n--> Face comparing value: ",
+                    "\n> Face comparing value: ",
                     compare_face_value,
                 )
 
                 if compare_face_value < threshold:
-                    print(f"--> Faces match: [ {folder[i][6:]} ]")
+                    print(f"=> Faces match: [ {folder[i][6:]} ]")
 
                 if score_folders[i] < compare_face_value:
                     score_folders[i] = compare_face_value
@@ -157,22 +157,20 @@ def detect_same_faces():
     #     rand_num = random.randint(0, len(folder) - 1)
     #     play_sound(rand_num, folder[rand_num][6:], True)
 
-    print("\n--> Searching... ", score_folders)
+    print("\n> Searching... ", score_folders)
     print(
-        f"--> Procress first folder: {folder[indexOfScore_folders][6:]} - Index[ {indexOfScore_folders} ]"
+        f"=> Procress first folder: {folder[indexOfScore_folders][6:]} - Index[ {indexOfScore_folders} ]"
     )
 
     global first_check
 
-    if first_check == True:
-        first_check = False
-        rand_num = random.randint(0, len(folder) - 1)
-        play_sound(rand_num, folder[rand_num][6:], True)
-    else:
-        for x in score_folders:
-            print(x)
-            if x != 0:
-                play_sound(indexOfScore_folders, folder[indexOfScore_folders][6:], False)
+    # if first_check == True:
+    #     first_check = False
+    #     rand_num = random.randint(0, len(folder) - 1)
+    #     play_sound(rand_num, folder[rand_num][6:], True)
+    # else:
+    rand_num = random.randint(0, len(folder) - 1)
+    play_sound(rand_num, folder[rand_num][6:], False)
 
     global status_compare_img
     status_compare_img = True
